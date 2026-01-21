@@ -1,0 +1,43 @@
+name: Threads Auto Post Daily
+
+on:
+  schedule:
+    # Runs at 8:00 AM UTC every day
+    # Timezone converter:
+    # - UTC: 8 (8:00 AM)
+    # - EST/EDT (UTC-4/-5): 12 or 13 (8:00 AM EST)
+    # - PST/PDT (UTC-7/-8): 15 or 16 (8:00 AM PST)
+    - cron: '0 8 * * *'
+  
+  # Allow manual trigger from GitHub UI
+  workflow_dispatch:
+
+jobs:
+  autopost:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      
+      - name: Run threads auto-post
+        env:
+          GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+        run: python main.py
+      
+      - name: Upload logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: logs
+          path: logs/
