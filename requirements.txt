@@ -1,0 +1,6 @@
+playwright
+gspread
+oauth2client
+requests
+pillow
+regex
