@@ -50,8 +50,8 @@ def connect_sheet():
                 f"credentials.json not found and GOOGLE_CREDENTIALS environment variable not set. "
                 f"Please set GOOGLE_CREDENTIALS or provide credentials.json"
             )
-        creds = Credentials.from_json_keyfile_name(
-            CREDENTIAL_FILE, scope
+        creds = Credentials.from_service_account_file(
+            CREDENTIAL_FILE, scopes=scope
         )
     
     client = gspread.authorize(creds)
