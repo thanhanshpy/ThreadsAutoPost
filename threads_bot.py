@@ -31,13 +31,38 @@ class ThreadsBot:
         self.context = self.pw.chromium.launch_persistent_context(
             THREADS_PROFILE_DIR,
             headless=self.headless,
+            args=[
+                "--disable-blink-features=AutomationControlled",
+                "--no-sandbox",
+                "--disable-dev-shm-usage",
+            ],
             viewport={"width": 1280, "height": 900},
+            locale="en-US",
+            timezone_id="Asia/Ho_Chi_Minh",
+            user_agent=(
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                "AppleWebKit/537.36 (KHTML, like Gecko) "
+                "Chrome/120.0.0.0 Safari/537.36"
+            ),
         )
 
         # ⏱ global timeouts (VERY IMPORTANT for CI)
         self.context.set_default_timeout(60000)
         self.context.set_default_navigation_timeout(60000)
 
+        # 🧠 Stealth JS injections
+        self.context.add_init_script("""
+            Object.defineProperty(navigator, 'webdriver', {
+                get: () => undefined
+            });
+            Object.defineProperty(navigator, 'languages', {
+                get: () => ['en-US', 'en']
+            });
+            Object.defineProperty(navigator, 'plugins', {
+                get: () => [1, 2, 3]
+            });
+        """)
+        
         self.page = self.context.new_page()
         self.page.goto(THREADS_URL, wait_until="domcontentloaded")
 
@@ -45,8 +70,6 @@ class ThreadsBot:
         self._assert_logged_in()
 
         print("✅ Threads browser ready")
-
-
 
     def close(self):
         if self.context:
