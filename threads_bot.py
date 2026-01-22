@@ -46,6 +46,8 @@ class ThreadsBot:
 
         print("✅ Threads browser ready")
 
+
+
     def close(self):
         if self.context:
             self.context.close()
@@ -118,15 +120,23 @@ class ThreadsBot:
 
     def _open_composer(self):
         try:
-            box = self.page.wait_for_selector(
-                "div[contenteditable='true']",
+            # Force open compose page (most reliable)
+            self.page.goto("https://www.threads.com/", wait_until="domcontentloaded")
+            time.sleep(3)
+            
+            # Step 2: wait for the editor
+            editor = self.page.wait_for_selector(
+                #"div[contenteditable='true']",
+                #timeout=60000
+                "div[role='button']:has-text(\"What's new\")",
                 timeout=60000
             )
-            box.click()
+            editor.click()
             time.sleep(random.uniform(*POST_DELAY_RANGE))
-        except TimeoutError:
+            
+        except Exception:
             self.page.screenshot(
-                path="debug_composer_timeout.png",
+                path="debug_composer_failed.png",
                 full_page=True
             )
             raise Exception("❌ Composer not available")
