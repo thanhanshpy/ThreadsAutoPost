@@ -2,7 +2,10 @@
 import gspread
 import os
 import json
-from oauth2client.service_account import ServiceAccountCredentials
+
+#from oauth2client.service_account import ServiceAccountCredentials
+from google.oauth2.service_account import Credentials
+
 from datetime import datetime
 
 from config.config import (
@@ -23,7 +26,9 @@ from config.config import (
 # =========================
 def connect_sheet():
     scope = [
-        "https://spreadsheets.google.com/feeds",
+        #"https://spreadsheets.google.com/feeds",
+        #"https://www.googleapis.com/auth/drive",
+        "https://www.googleapis.com/auth/spreadsheets",
         "https://www.googleapis.com/auth/drive",
     ]
     
@@ -33,7 +38,7 @@ def connect_sheet():
     if creds_json:
         try:
             creds_dict = json.loads(creds_json)
-            creds = ServiceAccountCredentials.from_service_account_info(
+            creds = Credentials.from_service_account_info(
                 creds_dict, scopes=scope
             )
         except Exception as e:
@@ -45,7 +50,7 @@ def connect_sheet():
                 f"credentials.json not found and GOOGLE_CREDENTIALS environment variable not set. "
                 f"Please set GOOGLE_CREDENTIALS or provide credentials.json"
             )
-        creds = ServiceAccountCredentials.from_json_keyfile_name(
+        creds = Credentials.from_json_keyfile_name(
             CREDENTIAL_FILE, scope
         )
     
