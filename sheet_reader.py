@@ -14,6 +14,8 @@ from config.config import (
     RECRUIT_TAB_NAME,
     COL_POSITION,
     COL_CONTENT,
+    COL_THREAD,
+    COL_TOPIC,
     COL_IMAGE,
     COL_POSTED,
     COL_PROFILE,
