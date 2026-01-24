@@ -13,6 +13,8 @@ from utils.text import normalize_threads_content
 from config.config import (
     COL_POSITION,
     COL_CONTENT,
+    COL_THREAD,
+    COL_TOPIC,
     COL_IMAGE,
     MAX_POSTS_PER_RUN,
 )
@@ -21,7 +23,7 @@ from config.config import (
 def run():
     print("🚀 START THREADS AUTO POST")
 
-    bot = ThreadsBot(headless=True)
+    bot = ThreadsBot(headless=False)
 
     try:
         bot.start()
@@ -39,16 +41,22 @@ def run():
             data = item["data"]
 
             position = data.get(COL_POSITION, "").strip()
-            content = data.get(COL_CONTENT, "").strip()
-            image_url = data.get(COL_IMAGE, "").strip()
+            content_1 = data.get(COL_CONTENT, "").strip()
+            content_2 = data.get(COL_THREAD, "").strip()
+            topic = data.get(COL_TOPIC, "").strip()
+            image_url = data.get(COL_IMAGE, "").strip()           
 
             print("=" * 60)
             print(f"📌 POSITION: {position}")
             print(f"📍 ROW INDEX: {row_index}")
 
-            if not content:
+            if not content_1:
                 print("⚠ Job Content trống → SKIP")
                 continue
+
+            parts = [content_1]
+            if content_2:
+                parts.append(content_2)
 
             image_path = None
 
@@ -59,7 +67,7 @@ def run():
                 except Exception as e:
                     raise Exception(f"❌ Có Image URL nhưng tải ảnh thất bại: {e}")
 
-            post_url = bot.post(text=content, image_path=image_path)
+            post_url = bot.post(parts, image_path=image_path, topic=topic)
 
             print(f"🔗 Post URL: {post_url}")
             mark_posted(row_index=row_index, threads_profile=post_url)
