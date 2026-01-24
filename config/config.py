@@ -10,10 +10,12 @@ RECRUIT_TAB_NAME = "Recruitment"
 # ===== TÊN CỘT (CHỐT) =====
 COL_POSITION = "Position"        # A
 COL_CONTENT = "Job Content"      # B
-COL_IMAGE = "Image URL"          # C
-COL_POSTED = "Posted"            # D  (YES = skip)
-COL_PROFILE = "ThreadsProfile"   # E
-COL_DATE = "Date"                # F
+COL_THREAD = "Thread Content"    # C
+COL_TOPIC = "Topic"              # D
+COL_IMAGE = "Image URL"          # E
+COL_POSTED = "Posted"            # F  (YES = skip)
+COL_PROFILE = "ThreadsProfile"   # G
+COL_DATE = "Date"                # H
 
 # Hashtags mặc định
 DEFAULT_HASHTAGS = [
