@@ -31,38 +31,13 @@ class ThreadsBot:
         self.context = self.pw.chromium.launch_persistent_context(
             THREADS_PROFILE_DIR,
             headless=self.headless,
-            args=[
-                "--disable-blink-features=AutomationControlled",
-                "--no-sandbox",
-                "--disable-dev-shm-usage",
-            ],
             viewport={"width": 1280, "height": 900},
-            locale="en-US",
-            timezone_id="Asia/Ho_Chi_Minh",
-            user_agent=(
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                "AppleWebKit/537.36 (KHTML, like Gecko) "
-                "Chrome/120.0.0.0 Safari/537.36"
-            ),
         )
 
         # ⏱ global timeouts (VERY IMPORTANT for CI)
         self.context.set_default_timeout(60000)
         self.context.set_default_navigation_timeout(60000)
 
-        # 🧠 Stealth JS injections
-        self.context.add_init_script("""
-            Object.defineProperty(navigator, 'webdriver', {
-                get: () => undefined
-            });
-            Object.defineProperty(navigator, 'languages', {
-                get: () => ['en-US', 'en']
-            });
-            Object.defineProperty(navigator, 'plugins', {
-                get: () => [1, 2, 3]
-            });
-        """)
-        
         self.page = self.context.new_page()
         self.page.goto(THREADS_URL, wait_until="domcontentloaded")
 
@@ -70,6 +45,8 @@ class ThreadsBot:
         self._assert_logged_in()
 
         print("✅ Threads browser ready")
+
+
 
     def close(self):
         if self.context:
@@ -80,9 +57,19 @@ class ThreadsBot:
     # =========================
     # POST ENTRYPOINT
     # =========================
-    def post(self, text: str, image_path: str | None = None):
-        text = normalize_threads_content(text)
-        if not text.strip():
+    def post(self, content: str | list[str], image_path: str | None = None, topic: str | None = None):
+        if isinstance(content, str):
+            parts = [content]
+        else:
+            parts = content
+
+        parts = [
+            normalize_threads_content(p)
+            for p in parts
+            if p and p.strip()
+        ]
+
+        if not parts:
             raise ValueError("❌ Post content is empty")
 
         last_error = None
@@ -92,7 +79,15 @@ class ThreadsBot:
                 print(f"✍️ Posting attempt {attempt}/{MAX_RETRIES}")
 
                 self._open_composer()
-                self._type_text(text)
+                
+                for i, text in enumerate(parts):
+                    self._type_text(text)
+
+                    if i < len(parts) - 1:
+                        self._click_add_to_thread()
+
+                if topic:
+                    self._add_topic(topic)
 
                 if image_path:
                     self._upload_image(image_path)
@@ -101,7 +96,7 @@ class ThreadsBot:
 
                 time.sleep(random.uniform(*AFTER_POST_DELAY))
 
-                post_url = self._confirm_posted(text)
+                post_url = self._confirm_posted(parts[0])
                 if not post_url:
                     raise Exception("Post not found on profile")
 
@@ -149,10 +144,8 @@ class ThreadsBot:
             
             # Step 2: wait for the editor
             editor = self.page.wait_for_selector(
-                #"div[contenteditable='true']",
-                #timeout=60000
                 "div[role='button']:has-text(\"What's new\")",
-                timeout=60000
+                timeout=20000
             )
             editor.click()
             time.sleep(random.uniform(*POST_DELAY_RANGE))
@@ -172,6 +165,48 @@ class ThreadsBot:
         file_input = self.page.locator("input[type='file']").first
         file_input.set_input_files(image_path)
         time.sleep(5)  # wait for preview
+
+    def _click_add_to_thread(self):
+        try:
+            btn = self.page.wait_for_selector(
+                "div[role='button']:has-text(\"Add to thread\")",
+                timeout=10000
+            )
+            btn.click()
+            time.sleep(1)
+        except TimeoutError:
+            self.page.screenshot(
+                path="debug_add_to_thread_not_found.png",
+                full_page=True
+            )
+            raise Exception("❌ 'Add to thread' button not found")
+        
+    def _add_topic(self, topic: str):
+        try:
+            time.sleep(1)
+
+            topic_input = self.page.get_by_role("searchbox", name = "Add a topic")
+            
+            topic_input.wait_for(state="visible", timeout=10000)
+            topic_input.focus()
+            time.sleep(0.3)
+
+            #Type topic text
+            self.page.keyboard.type(topic, delay=30)
+            time.sleep(0.5)
+
+            #Press Enter to confirm (custom or suggested)
+            self.page.keyboard.press("Enter")
+            time.sleep(1)
+
+            print(f"topic added: {topic}")
+
+        except Exception as e:
+            self.page.screenshot(
+                path="debug_add_topic_failed.png",
+                full_page=True
+            )
+            raise Exception(f"❌ Failed to add topic: {topic}") from e
 
     def _submit_post(self):
         # Ctrl+Enter
