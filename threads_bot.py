@@ -12,9 +12,6 @@ THREADS_URL = "https://www.threads.net"
 POST_DELAY_RANGE = (3, 6)
 AFTER_POST_DELAY = (5, 8)
 
-MAX_RETRIES = 2
-
-
 class ThreadsBot:
     def __init__(self, headless=True):
         self.headless = headless
@@ -73,51 +70,43 @@ class ThreadsBot:
             raise ValueError("❌ Post content is empty")
 
         last_error = None
+       
+        try:
+            print(f"✍️ Posting")
 
-        for attempt in range(1, MAX_RETRIES + 1):
-            try:
-                print(f"✍️ Posting attempt {attempt}/{MAX_RETRIES}")
-
-                self._open_composer()
+            self._open_composer()
                 
-                for i, text in enumerate(parts):
-                    self._type_text(text)
+            for i, text in enumerate(parts):
+                self._type_text(text)
 
-                    if i < len(parts) - 1:
-                        self._click_add_to_thread()
+                if i < len(parts) - 1:
+                    self._click_add_to_thread()
 
-                if topic:
-                    self._add_topic(topic)
+            if topic:
+                self._add_topic(topic)
 
-                if image_path:
-                    self._upload_image(image_path)
+            if image_path:
+                self._upload_image(image_path)
 
-                self._submit_post()
+            self._submit_post()
 
-                time.sleep(random.uniform(*AFTER_POST_DELAY))
+            time.sleep(random.uniform(*AFTER_POST_DELAY))
 
-                post_url = self._confirm_posted(parts[0])
-                if not post_url:
-                    raise Exception("Post not found on profile")
+            post_url = self._confirm_posted(parts[0])
+            if not post_url:
+                raise Exception("Post not found on profile")
 
-                print("✅ Post confirmed")
-                return post_url
+            print("✅ Post confirmed")
+            return post_url
 
-            except Exception as e:
-                last_error = e
-                print(f"⚠ Attempt {attempt} failed: {e}")
+        except Exception as e:
+            last_error = e
+            print(f"⚠ Posting failed: {e}")
 
-                self.page.screenshot(
-                    path=f"debug_post_attempt_{attempt}.png",
-                    full_page=True,
-                )
-
-                if attempt < MAX_RETRIES:
-                    print("🔄 Retrying…")
-                    self.page.reload(wait_until="domcontentloaded")
-                    time.sleep(5)
-
-        raise Exception(f"❌ All post attempts failed: {last_error}")
+            self.page.screenshot(
+                path=f"debug_post.png",
+                full_page=True,
+            )     
 
     # =========================
     # INTERNAL HELPERS
@@ -137,12 +126,8 @@ class ThreadsBot:
             raise Exception("❌ Threads UI blocked")
 
     def _open_composer(self):
-        try:
-            # Force open compose page (most reliable)
-            self.page.goto("https://www.threads.com/", wait_until="domcontentloaded")
-            time.sleep(3)
-            
-            # Step 2: wait for the editor
+        try:           
+            #wait for the editor
             editor = self.page.wait_for_selector(
                 "div[role='button']:has-text(\"What's new\")",
                 timeout=20000
