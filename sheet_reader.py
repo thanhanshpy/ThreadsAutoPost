@@ -27,9 +27,7 @@ from config.config import (
 # CONNECT GOOGLE SHEET
 # =========================
 def connect_sheet():
-    scope = [
-        #"https://spreadsheets.google.com/feeds",
-        #"https://www.googleapis.com/auth/drive",
+    scope = [  
         "https://www.googleapis.com/auth/spreadsheets",
         "https://www.googleapis.com/auth/drive",
     ]
