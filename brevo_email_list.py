@@ -5,8 +5,8 @@ from email_sheet_reader import get_all_rows
 from dotenv import load_dotenv
 load_dotenv()
 
-BREVO_API_KEY = os.getenv("BREVO_API_KEY")
-BREVO_LIST_ID = 2  # change this
+BREVO_API_KEY = "Paste your key here"
+BREVO_LIST_ID = 2  #change to your list id
 
 def add_contact_to_brevo(email, fname = None, lname = None):
     url = "https://api.brevo.com/v3/contacts"
@@ -88,4 +88,5 @@ while True:
         break
     else:
         print("Invalid choice")
+
 
