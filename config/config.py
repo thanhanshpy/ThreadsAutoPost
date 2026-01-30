@@ -7,6 +7,15 @@ CREDENTIAL_FILE = "credentials.json"
 RECRUIT_SHEET_URL = "https://docs.google.com/spreadsheets/d/1bBkKae805H60iWStPRNFP9noj_EWCGDwT40Z3pJmOt8/edit"
 RECRUIT_TAB_NAME = "Recruitment"
 
+# Google Sheet email
+EMAIL_SHEET_URL = "https://docs.google.com/spreadsheets/d/1X6HPGZOqJZb7kMVf7NL2ERgqdSIVb1ryYq8Wmnp7V7I/edit?usp=sharing"
+EMAIL_TAB_NAME = "Info"
+
+# Email sheet column
+COL_EMAIL = "Email"
+COL_FNAME = "FirstName"
+COL_LNAME = "LastName"
+
 # ===== TÊN CỘT (CHỐT) =====
 COL_POSITION = "Position"        # A
 COL_CONTENT = "Job Content"      # B
